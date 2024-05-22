@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -18,12 +17,15 @@ class UrlToPdfConverterController extends AbstractController
         HttpClientInterface $client
     ): Response
     {
-        $url = $request->get('url');
+        $url = $request->request->get('url');
+
         $response = $client->request('POST', 'http://localhost:3000/forms/chromium/convert/url', [
             'headers' => [
                 'Content-Type' => 'multipart/form-data',
             ],
-            'body' => $url
+            'body' => [
+                'url' => $url,
+            ]
         ]);
 
         if ($response->getStatusCode() === 200) {
@@ -35,7 +37,7 @@ class UrlToPdfConverterController extends AbstractController
             ]);
         } else {
             return $this->json([
-                'error' => 'Failed to convert HTML to PDF',
+                'error' => 'An error occurred while converting the URL to PDF. Please try again.',
             ], $response->getStatusCode());
         }
     }
